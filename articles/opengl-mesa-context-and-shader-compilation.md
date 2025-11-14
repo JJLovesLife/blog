@@ -1,5 +1,5 @@
 ---
-title: "Mesa/OpenGL 源码分析：Context 与 Shader 编译机制"
+title: Mesa/OpenGL 源码分析：Context 与 Shader 编译机制
 llm_assisted: true
 ---
 
