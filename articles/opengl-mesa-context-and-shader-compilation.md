@@ -9,6 +9,8 @@ TL;DR;
 
 前段时间 AMD 有一个关于 AMDVLK 开源项目 discontinue 的 [announcement](https://github.com/GPUOpen-Drivers/AMDVLK/discussions/416)，其中提到他们准备转向 RADV，这是一个 Mesa 下属的 Vulkan driver。于是借此机会，我也想花点时间来看看这个 Mesa 项目。
 
+--- MORE ---
+
 考虑到如今的 Mesa 已经非常庞大，我本次的切入点是 Mesa 6.4 - 7.0 这段时间的版本。这一段时间也正好是 Mesa 为 OpenGL 2.0 增加支持，即引入可编程管线的时期。这使其框架更接近现代化设计，而 shader 这部分正好也是我最感兴趣的部分。
 
 这篇文章是 Mesa 源码分析的第一篇文章，主要探讨我比较关心的两个核心概念：OpenGL 的上下文（Context）在 Mesa 中的实现，以及 Shader 的编译流程。
