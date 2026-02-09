@@ -37,25 +37,6 @@ llm_assisted: true
 - **libGLdispatch.so**：负责 GL 调用的分发，通常是基于 TLS 的方式。
 - **libGLX_{vendor}.so**：vendor 的具体 OpenGL 实现。
 
-### libGLX 模块划分
-
-libglx.c - Public API 接入层
-- 导出所有 PUBLIC 的 GLX 函数符号
-- 应用程序直接调用的接口
-- 上下文生命周期管理
-- 线程状态管理
-
-libglxmapping.c - Vendor 分发调度层
-- 管理 vendor 库的加载 (dlopen)
-- 维护 XID → vendor 的映射表
-- 与 libGLdispatch 交互
-- 动态生成 dispatch stubs
-
-libglxproto.c - X11 协议通信层
-- 直接使用 Xlib 发送/接收 X11 请求
-- 封装底层的 GLX 协议通信
-- 查询 X server 端信息
-
 ## Vendor 管理
 
 ### Vendor 加载
@@ -157,10 +138,29 @@ vendor 查找逻辑主要包括下面几个为 key 的哈希表：
 - 一部分 glX function 是 vendor 实现的 "静态的" dispatch (load vendor lib 的时候 query 得到的)。两步分发，第一从 Screen 找到 vendor, 然后直接调用 vendor 对应的实现，见 `LookupVendorEntrypoints`.
 - 另外的 glX extension function, 除了几个特定的 extension 函数 `glXGetProcAddressARB`, `glXImportContextEXT`, `glXFreeContextEXT`, `glXCreateContextAttribsARB` 因为涉及到 libGLX 的内容，和前一部分一样由 libGLX 提供外，其他的 extension 函数，会去查看是否有任意 vendor 提供了该 extension，是的话会直接转发给该 vendor. 即使有多个 vendor 也只会使用第一个。如果某个 extension 当前没有任意已加载 vendor 提供，会生成一个临时的跳板，指向一个 no-op function。等到后续加载 vendor 的时候，会再去尝试匹配，如果成功，则跳转到 vendor 的实现。
 
-代码分析：
+#### 代码分析：
 - 由 libGLX 实现的 glX 代码可以直接 export, `LOCAL_GLX_DISPATCH_FUNCTIONS`.
 - 而 glX extension functions 不需要 libGLX 参与（除了几个特殊的），只需要记录一下其地址就行，这就是 `dispatchIndexList`
 - 但是有一个需求是在 vendor lib 没有加载之前就要提供这些 extension function 的地址，为了解决这个问题 `glx_entrypoint_start` 被引入提供一个临时跳板。
+
+源码实现划分：
+
+libglx.c - Public API 接入层
+- 导出所有 PUBLIC 的 GLX 函数符号
+- 应用程序直接调用的接口
+- 上下文生命周期管理
+- 线程状态管理
+
+libglxmapping.c - Vendor 分发调度层
+- 管理 vendor 库的加载 (dlopen)
+- 维护 XID → vendor 的映射表
+- 与 libGLdispatch 交互
+- 动态生成 dispatch stubs
+
+libglxproto.c - X11 协议通信层
+- 直接使用 Xlib 发送/接收 X11 请求
+- 封装底层的 GLX 协议通信
+- 查询 X server 端信息
 
 #### GLX 函数在 libGL 中的转发
 
