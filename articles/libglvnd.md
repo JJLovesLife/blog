@@ -39,11 +39,22 @@ llm_assisted: true
 
 ### libGLX 模块划分
 
-| 文件 | 主要职责 | 关键特征 |
-| --- | --- | --- |
-| libglx.c | Public API 接入层 | • 导出所有 PUBLIC 的 GLX 函数符号<br>• 应用程序直接调用的接口<br>• 上下文生命周期管理<br>• 线程状态管理 |
-| libglxmapping.c | Vendor 分发调度层 | • 管理 vendor 库的加载 (dlopen)<br>• 维护 XID → vendor 的映射表<br>• 与 libGLdispatch 交互<br>• 动态生成 dispatch stubs |
-| libglxproto.c | X11 协议通信层 | • 直接使用 Xlib 发送/接收 X11 请求<br>• 封装底层的 GLX 协议通信<br>• 查询 X server 端信息 |
+libglx.c - Public API 接入层
+- 导出所有 PUBLIC 的 GLX 函数符号
+- 应用程序直接调用的接口
+- 上下文生命周期管理
+- 线程状态管理
+
+libglxmapping.c - Vendor 分发调度层
+- 管理 vendor 库的加载 (dlopen)
+- 维护 XID → vendor 的映射表
+- 与 libGLdispatch 交互
+- 动态生成 dispatch stubs
+
+libglxproto.c - X11 协议通信层
+- 直接使用 Xlib 发送/接收 X11 请求
+- 封装底层的 GLX 协议通信
+- 查询 X server 端信息
 
 ## Vendor 管理
 
