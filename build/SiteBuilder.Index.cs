@@ -40,7 +40,7 @@ internal partial class SiteBuilder
 
 		await output.WriteAsync(
 $"""
-<header><h1><a href="{host}">{H1Title}</a></h1></header>
+<header><h1><a href="/">{H1Title}</a></h1></header>
 <main>
 
 """);

@@ -17,7 +17,7 @@ jobs:
     permissions:
       pull-requests: write
     env:
-      HOST_NAME: https://mango-mushroom-0f508f700.3.azurestaticapps.net
+      HOST_NAME: https://blog.jjloveslife.com
     steps:
       - uses: actions/checkout@v3
         with:
