@@ -19,7 +19,7 @@ class Program
 		Verbosity verbosity = Verbosity.Normal)
 	{
 		// default repo URL, for easier local build
-		repo_url ??= new Uri("https://github.com/MMaxwell66/blog");
+		repo_url ??= new Uri("https://github.com/JJLovesLife/blog");
 
 		Log.level = verbosity;
 

@@ -17,15 +17,15 @@ jobs:
     permissions:
       pull-requests: write
     env:
-      HOST_NAME: https://mango-mushroom-0f508f700.3.azurestaticapps.net
+      HOST_NAME: https://blog.jjloveslife.com
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 7.0.x
+          dotnet-version: 10.0.x
       - name: Update host for PR
         if: github.event_name == 'pull_request'
         run: echo "HOST_NAME=https://mango-mushroom-0f508f700-$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH").eastasia.3.azurestaticapps.net" >> "$GITHUB_ENV"
