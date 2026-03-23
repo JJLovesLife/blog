@@ -68,7 +68,7 @@ class Program
 			// TODO: as we parallel, need an identifier to distinct iter when we have more log
 			Log.DiagWriteLine($"Building file: {relativePath}");
 
-			var destUrlPath = Path.ChangeExtension(relativePath, null).Replace(Path.DirectorySeparatorChar, '/').Replace(Path.AltDirectorySeparatorChar, '/');
+			var destUrlPath = "/" + Path.ChangeExtension(relativePath, null).Replace(Path.DirectorySeparatorChar, '/').Replace(Path.AltDirectorySeparatorChar, '/');
 			await siteBuilder.BuildArticle(destUrlPath, destFile, srcFile);
 		});
 
