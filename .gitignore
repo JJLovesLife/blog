@@ -1,4 +1,7 @@
 /output/
 /build/obj/
 /build/bin/
+/node_modules/
 /.vscode/
+/.wrangler/
+/package-lock.json
