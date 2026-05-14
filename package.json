@@ -3,7 +3,9 @@
 	"version": "0.0.0",
 	"private": true,
 	"scripts": {
+		"build:worker": "bash ./scripts/build-worker.sh",
 		"deploy": "wrangler deploy",
+		"deploy:preview": "wrangler versions upload",
 		"dev": "wrangler dev",
 		"start": "wrangler dev"
 	},
