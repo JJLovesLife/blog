@@ -6,13 +6,11 @@ class Program
 	/// <summary>
 	/// My blog's build system.
 	/// </summary>
-	/// <param name="host">host name for the blog</param>
 	/// <param name="repo_url">url to the repository contains the blog</param>
 	/// <param name="branch">current branch of the repo</param>
 	/// <param name="force">force generation</param>
 	/// <param name="verbosity"></param>
 	static async Task Main(
-		Uri? host = null,
 		Uri? repo_url = null,
 		string branch = "live",
 		bool force = false,
@@ -30,9 +28,8 @@ class Program
 			Directory.Delete(SiteBuilder.OutputFolder, true);
 		Directory.CreateDirectory(SiteBuilder.OutputFolder);
 
-		Log.WriteLine($"Building for '{host?.ToString() ?? "localhost"}' ...");
 		Log.WriteLine($"Building article folder: {Path.GetFullPath(SiteBuilder.ArticlesFolder)}");
-		var siteBuilder = new SiteBuilder(repo_url, branch, host, force);
+		var siteBuilder = new SiteBuilder(repo_url, branch, force);
 
 		await Parallel.ForEachAsync(
 			new FileSystemEnumerable<(string, bool)>(

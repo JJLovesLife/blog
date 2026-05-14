@@ -12,15 +12,13 @@ internal partial class SiteBuilder
 
 	private readonly Uri repoUrl;
 	private readonly string branch;
-	private readonly Uri? host;
 	private readonly bool force;
 	private readonly ConcurrentBag<Article> articles = new();
 
-	public SiteBuilder(Uri repo, string branch, Uri? host, bool force)
+	public SiteBuilder(Uri repo, string branch, bool force)
 	{
 		this.repoUrl = repo;
 		this.branch = branch;
-		this.host = host;
 		this.force = force;
 	}
 
