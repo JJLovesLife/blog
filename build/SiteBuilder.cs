@@ -12,15 +12,13 @@ internal partial class SiteBuilder
 
 	private readonly Uri repoUrl;
 	private readonly string branch;
-	private readonly Uri? host;
 	private readonly bool force;
 	private readonly ConcurrentBag<Article> articles = new();
 
-	public SiteBuilder(Uri repo, string branch, Uri? host, bool force)
+	public SiteBuilder(Uri repo, string branch, bool force)
 	{
 		this.repoUrl = repo;
 		this.branch = branch;
-		this.host = host;
 		this.force = force;
 	}
 
@@ -30,7 +28,7 @@ internal partial class SiteBuilder
 		{
 			BuildIndexPages(),
 			CopyAssets(),
-			BuildStaticWebAppConfig(),
+			BuildRedirects(),
 		};
 
 		return Task.WhenAll(tasks);
@@ -64,21 +62,13 @@ internal partial class SiteBuilder
 		cssInputInfo.CopyTo(cssOutputPath, true);
 	}
 
-	private static Task BuildStaticWebAppConfig()
+	private static Task BuildRedirects()
 	{
-		var configFilePath = Path.Join(OutputFolder, "staticwebapp.config.json");
+		var configFilePath = Path.Join(OutputFolder, "_redirects");
 		return File.WriteAllTextAsync(
 			configFilePath,
 """
-{
-	"routes": [
-		{
-			"route": "/page/1",
-			"redirect": "/",
-			"statusCode": 301
-		}
-	]
-}
+/page/1 / 301
 """);
 	}
 
