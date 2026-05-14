@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+head="$(git rev-parse HEAD)"
+
 is_shallow="$(git rev-parse --is-shallow-repository 2>/dev/null || true)"
 if [ "$is_shallow" = "true" ]; then
-	git fetch --unshallow --tags
+	git fetch --unshallow --no-tags origin "$head"
 fi
 
 export DOTNET_ROOT="${DOTNET_ROOT:-$HOME/.dotnet}"
+export DOTNET_NOLOGO=1
 export PATH="$DOTNET_ROOT:$DOTNET_ROOT/tools:$PATH"
 
 has_dotnet_10=false
@@ -37,4 +40,4 @@ fi
 
 repo_url="${repo_url%.git}"
 
-dotnet run --project build -- --force --repo-url "$repo_url" --branch "${WORKERS_CI_BRANCH:-live}"
+dotnet run --project build -- --force --repo-url "$repo_url" --branch "$head"
