@@ -148,6 +148,7 @@ Sitemap: {GetAbsoluteUrl("/sitemap.xml")}
 		<html lang="zh-CN">
 		<head>
 			<meta charset="utf-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1">
 			<title>{title} | {suffix}</title>
 			{headLinks}
 			<link rel="stylesheet" href="/assets/style.css">
