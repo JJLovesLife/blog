@@ -1,7 +1,9 @@
 using System.Globalization;
 using Markdig;
 using Markdig.Extensions.Yaml;
+using Markdig.Renderers.Html;
 using Markdig.Syntax;
+using Markdig.Syntax.Inlines;
 
 internal partial class SiteBuilder
 {
@@ -10,6 +12,7 @@ internal partial class SiteBuilder
 	private static readonly MarkdownPipeline pipeline = new MarkdownPipelineBuilder()
 		.UseYamlFrontMatter()
 		.Use<ReadMoreExtension>()
+		.Use<CodeLanguageExtension>()
 		.UseSoftlineBreakAsHardlineBreak()
 		.UseAutoLinks()
 		.Build();
@@ -18,6 +21,7 @@ internal partial class SiteBuilder
 		var content = await File.ReadAllTextAsync(srcFilePath);
 
 		var document = Markdown.Parse(content, pipeline);
+		SetCodeLanguage(document);
 
 		var title = GetTitle(document);
 		if (title.IsEmpty)
@@ -114,5 +118,14 @@ $"""
 			return default;
 		var yaml = Utils.ParseYaml(yamlBlock.Lines);
 		return yaml.First(kv => kv.Item1.AsSpan().SequenceEqual("title")).Item2.AsMemory();
+	}
+
+	private static void SetCodeLanguage(MarkdownDocument document)
+	{
+		foreach (var codeBlock in document.Descendants<CodeBlock>())
+			codeBlock.GetAttributes().AddPropertyIfNotExist("lang", "en");
+
+		foreach (var codeInline in document.Descendants<CodeInline>())
+			codeInline.GetAttributes().AddPropertyIfNotExist("lang", "en");
 	}
 }
