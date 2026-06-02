@@ -13,14 +13,13 @@ body {
 
 body > header {
 	margin-top: 3em;
+	margin-bottom: 1.34em;
 	padding-left: .5em;
 }
 
 .site-title {
-	display: block;
 	font-size: 2em;
 	font-weight: bold;
-	margin: .67em 0;
 }
 
 a {
