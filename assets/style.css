@@ -3,11 +3,24 @@ html{line-height:1.15;-webkit-text-size-adjust:100%}body{margin:0}main{display:b
 
 /*! This theme is based on Mathix67(https://www.matrix67.com/blog/wp-content/themes/matrix67/style.css & https://localhost-8080.com/wp-content/themes/matrix67/style.css) */
 
+
+html {
+	box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: inherit;
+}
+
 body {
 	background: #f8f8f8;
 	font-family: 'Helvetica Neue', Arial, sans-serif;
-	width: 800px;
+	max-width: calc(800px + 2rem);
+	width: 100%;
 	margin: 0 auto;
+	padding: 0 1rem;
 	line-height: 1.5;
 }
 
@@ -72,6 +85,7 @@ article > header {
 .content {
 	font-size: 16px;
 	color: #555;
+	overflow-wrap: break-word;
 }
 .content h2 {
 	font-size: 1.17em;
@@ -90,6 +104,7 @@ pre {
 	background: #fafafa;
 	overflow-x: auto;
 	padding: 8px;
+	-webkit-overflow-scrolling: touch;
 }
 :not(pre) > code {
 	background-color: #f2f2f2;
@@ -129,4 +144,89 @@ footer {
 	color: #777;
 	margin-top: 2em;
 	padding-bottom: 0.5em;
+}
+
+img,
+video {
+	max-width: 100%;
+	height: auto;
+}
+
+iframe {
+	max-width: 100%;
+}
+
+@media (max-width: 600px) {
+	body {
+		padding: 0 .75rem;
+	}
+
+	body > header {
+		margin-top: 1.5rem;
+		margin-bottom: 1rem;
+		padding-left: 0;
+	}
+
+	body > header h1,
+	.site-title {
+		font-size: 1.65rem;
+	}
+
+	article {
+		margin-bottom: 1rem;
+		padding: 1rem;
+	}
+
+	article > header {
+		margin-bottom: 1.25rem;
+	}
+
+	.title,
+	.title a,
+	.title a:visited,
+	.title a:hover,
+	.title a:focus,
+	.title a:active {
+		font-size: 1.35rem;
+		line-height: 1.25;
+	}
+
+	.content {
+		line-height: 1.65;
+	}
+
+	pre {
+		margin-left: -.25rem;
+		margin-right: -.25rem;
+		padding: .75rem;
+	}
+
+	nav {
+		display: flex;
+		gap: .75rem;
+		justify-content: space-between;
+	}
+
+	nav::after {
+		content: none;
+	}
+
+	nav > div {
+		float: none !important;
+		flex: 1;
+	}
+
+	nav a,
+	nav a:visited,
+	nav a:hover,
+	nav a:focus,
+	nav a:active {
+		padding: .6rem .75rem;
+	}
+
+	footer {
+		font-size: 12px;
+		line-height: 1.6;
+		padding-bottom: 1.25rem;
+	}
 }
