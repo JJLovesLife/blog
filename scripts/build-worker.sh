@@ -2,6 +2,12 @@
 set -euo pipefail
 
 head="$(git rev-parse HEAD)"
+site_domain="${SITE_DOMAIN:-}"
+
+if [ -z "$site_domain" ]; then
+	echo "SITE_DOMAIN must be set to the production domain only, e.g. example.com" >&2
+	exit 1
+fi
 
 is_shallow="$(git rev-parse --is-shallow-repository 2>/dev/null || true)"
 if [ "$is_shallow" = "true" ]; then
@@ -40,4 +46,4 @@ fi
 
 repo_url="${repo_url%.git}"
 
-dotnet run --project build -- --force --repo-url "$repo_url" --branch "$head"
+dotnet run --project build -- --force --repo-url "$repo_url" --site-domain "$site_domain" --branch "$head"

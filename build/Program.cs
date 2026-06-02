@@ -6,18 +6,20 @@ class Program
 	/// <summary>
 	/// My blog's build system.
 	/// </summary>
-	/// <param name="repo_url">url to the repository contains the blog</param>
+	/// <param name="repoUrl">url to the repository contains the blog</param>
+	/// <param name="siteDomain">domain name for the generated site, without scheme, port, path, or trailing slash</param>
 	/// <param name="branch">current branch of the repo</param>
 	/// <param name="force">force generation</param>
 	/// <param name="verbosity"></param>
 	static async Task Main(
-		Uri? repo_url = null,
+		Uri? repoUrl = null,
+		string? siteDomain = null,
 		string branch = "live",
 		bool force = false,
 		Verbosity verbosity = Verbosity.Normal)
 	{
 		// default repo URL, for easier local build
-		repo_url ??= new Uri("https://github.com/JJLovesLife/blog");
+		repoUrl ??= new Uri("https://github.com/JJLovesLife/blog");
 
 		Log.level = verbosity;
 
@@ -29,7 +31,7 @@ class Program
 		Directory.CreateDirectory(SiteBuilder.OutputFolder);
 
 		Log.WriteLine($"Building article folder: {Path.GetFullPath(SiteBuilder.ArticlesFolder)}");
-		var siteBuilder = new SiteBuilder(repo_url, branch, force);
+		var siteBuilder = new SiteBuilder(repoUrl, branch, force, siteDomain);
 
 		await Parallel.ForEachAsync(
 			new FileSystemEnumerable<(string, bool)>(
@@ -57,16 +59,15 @@ class Program
 			if (Path.GetExtension(srcFile) != ".md")
 				throw new ArgumentOutOfRangeException($"[{relativePath}]: only support markdown file");
 
-			// skip file without change
+			// Skip rewriting unchanged article pages, but still collect metadata for index pages and sitemap.
 			var destFileInfo = new FileInfo(destFile);
-			if (!force && destFileInfo.Exists && destFileInfo.LastWriteTimeUtc >= File.GetLastWriteTimeUtc(srcFile))
-				return;
+			var shouldBuildArticlePage = force || !destFileInfo.Exists || destFileInfo.LastWriteTimeUtc < File.GetLastWriteTimeUtc(srcFile);
 
 			// TODO: as we parallel, need an identifier to distinct iter when we have more log
 			Log.DiagWriteLine($"Building file: {relativePath}");
 
 			var destUrlPath = "/" + Path.ChangeExtension(relativePath, null).Replace(Path.DirectorySeparatorChar, '/').Replace(Path.AltDirectorySeparatorChar, '/');
-			await siteBuilder.BuildArticle(destUrlPath, destFile, srcFile);
+			await siteBuilder.BuildArticle(destUrlPath, destFile, srcFile, shouldBuildArticlePage);
 		});
 
 		await siteBuilder.PostArticlesBuild();

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Xml;
 
 internal partial class SiteBuilder
 {
@@ -11,13 +12,15 @@ internal partial class SiteBuilder
 	public const string ArticleTitleSuffix = H1Title;
 
 	private readonly Uri repoUrl;
+	private readonly string? siteDomain;
 	private readonly string branch;
 	private readonly bool force;
 	private readonly ConcurrentBag<Article> articles = new();
 
-	public SiteBuilder(Uri repo, string branch, bool force)
+	public SiteBuilder(Uri repo, string branch, bool force, string? siteDomain)
 	{
 		this.repoUrl = repo;
+		this.siteDomain = siteDomain;
 		this.branch = branch;
 		this.force = force;
 	}
@@ -27,6 +30,8 @@ internal partial class SiteBuilder
 		var tasks = new List<Task>()
 		{
 			BuildIndexPages(),
+			BuildSitemap(),
+			BuildRobotsTxt(),
 			CopyAssets(),
 			BuildRedirects(),
 		};
@@ -72,19 +77,127 @@ internal partial class SiteBuilder
 """);
 	}
 
-	private static Task WriteHeader(TextWriter output, ReadOnlySpan<char> title, string suffix)
+	private async Task BuildSitemap()
 	{
+		if (string.IsNullOrWhiteSpace(siteDomain))
+			return;
+
+		var orderedArticles = articles.OrderByDescending(article => article.PostTime).ThenBy(article => article.UrlPath).ToArray();
+		var pages = (orderedArticles.Length + ArticlePerPage - 1) / ArticlePerPage;
+		if (pages == 0) pages = 1;
+
+		using var output = XmlWriter.Create(
+			Path.Join(OutputFolder, "sitemap.xml"),
+			new XmlWriterSettings()
+			{
+				Async = true,
+				Indent = true
+			});
+
+		await WriteSitemap(output, orderedArticles, pages);
+	}
+
+	private Task BuildRobotsTxt()
+	{
+		if (string.IsNullOrWhiteSpace(siteDomain))
+			return Task.CompletedTask;
+
+		return File.WriteAllTextAsync(
+			Path.Join(OutputFolder, "robots.txt"),
+$"""
+User-agent: *
+Allow: /
+Sitemap: {GetAbsoluteUrl("/sitemap.xml")}
+""");
+	}
+
+	private async Task WriteSitemap(XmlWriter output, Article[] orderedArticles, int pages)
+	{
+		await output.WriteStartDocumentAsync();
+		await output.WriteStartElementAsync(null, "urlset", "http://www.sitemaps.org/schemas/sitemap/0.9");
+
+		for (var pageNo = 1; pageNo <= pages; pageNo++)
+		{
+			var urlPath = pageNo == 1 ? "/" : $"/page/{pageNo}";
+			await WriteSitemapUrl(output, urlPath);
+		}
+
+		foreach (var article in orderedArticles)
+		{
+			await WriteSitemapUrl(output, article.UrlPath, article.EditTime);
+		}
+
+		await output.WriteEndElementAsync();
+		await output.WriteEndDocumentAsync();
+	}
+
+	private async Task WriteSitemapUrl(XmlWriter output, string urlPath, DateTime? lastModified = null)
+	{
+		await output.WriteStartElementAsync(null, "url", null);
+		await output.WriteElementStringAsync(null, "loc", null, GetAbsoluteUrl(urlPath));
+		if (lastModified is not null)
+			await output.WriteElementStringAsync(null, "lastmod", null, lastModified.Value.ToString("yyyy-MM-dd"));
+		await output.WriteEndElementAsync();
+	}
+
+	private Task WriteHeader(TextWriter output, ReadOnlySpan<char> title, string suffix, string urlPath, string? previousUrlPath = null, string? nextUrlPath = null)
+	{
+		var headLinks = GetHeaderLinks(urlPath, previousUrlPath, nextUrlPath);
 		return output.WriteAsync($"""
 		<!DOCTYPE html>
-		<html lang="en">
+		<html lang="zh-CN">
 		<head>
 			<meta charset="utf-8">
 			<title>{title} | {suffix}</title>
+			{headLinks}
 			<link rel="stylesheet" href="/assets/style.css">
 		</head>
 		<body>
 
 		""");
+	}
+
+	private string GetHeaderLinks(string urlPath, string? previousUrlPath, string? nextUrlPath)
+	{
+		var links = new List<string>();
+		var canonicalUrl = GetCanonicalUrl(urlPath);
+		if (canonicalUrl is not null)
+			links.Add(canonicalUrl);
+		var previousPageUrl = GetPaginationLink("prev", previousUrlPath);
+		if (previousPageUrl is not null)
+			links.Add(previousPageUrl);
+		var nextPageUrl = GetPaginationLink("next", nextUrlPath);
+		if (nextPageUrl is not null)
+			links.Add(nextPageUrl);
+
+		return string.Join("\n\t", links);
+	}
+
+	private string? GetCanonicalUrl(string urlPath)
+	{
+		if (string.IsNullOrWhiteSpace(siteDomain))
+			return null;
+
+		return $"<link rel=\"canonical\" href=\"{GetAbsoluteUrl(urlPath)}\">";
+	}
+
+	private string? GetPaginationLink(string rel, string? urlPath)
+	{
+		if (urlPath is null)
+			return null;
+
+		var href = string.IsNullOrWhiteSpace(siteDomain) ? urlPath : GetAbsoluteUrl(urlPath);
+		return $"<link rel=\"{rel}\" href=\"{href}\">";
+	}
+
+	private string GetAbsoluteUrl(string urlPath)
+	{
+		var builder = new UriBuilder("https", siteDomain!)
+		{
+			Path = urlPath
+		};
+
+		return builder.Uri.AbsoluteUri;
 	}
 
 	private static Task WriteFooter(TextWriter output)
