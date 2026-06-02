@@ -74,19 +74,34 @@ internal partial class SiteBuilder
 """);
 	}
 
-	private static Task WriteHeader(TextWriter output, ReadOnlySpan<char> title, string suffix)
+	private Task WriteHeader(TextWriter output, ReadOnlySpan<char> title, string suffix, string urlPath)
 	{
+		var canonicalUrl = GetCanonicalUrl(urlPath);
 		return output.WriteAsync($"""
 		<!DOCTYPE html>
 		<html lang="en">
 		<head>
 			<meta charset="utf-8">
 			<title>{title} | {suffix}</title>
+			{canonicalUrl}
 			<link rel="stylesheet" href="/assets/style.css">
 		</head>
 		<body>
 
 		""");
+	}
+
+	private string GetCanonicalUrl(string urlPath)
+	{
+		if (string.IsNullOrWhiteSpace(siteDomain))
+			return string.Empty;
+
+		var builder = new UriBuilder("https", siteDomain)
+		{
+			Path = urlPath
+		};
+
+		return $"<link rel=\"canonical\" href=\"{builder.Uri.AbsoluteUri}\">";
 	}
 
 	private static Task WriteFooter(TextWriter output)

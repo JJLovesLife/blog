@@ -36,7 +36,8 @@ internal partial class SiteBuilder
 	private async Task BuildIndexPage(ReadOnlyMemory<Article> articles, StreamWriter output, int pageNo, bool isLast)
 	{
 		var title = pageNo == 1 ? MainTitle : $"{MainTitle} - Page {pageNo}";
-		await WriteHeader(output, title, IndexQuote);
+		var urlPath = pageNo == 1 ? "/" : $"/page/{pageNo}";
+		await WriteHeader(output, title, IndexQuote, urlPath);
 
 		await output.WriteAsync(
 $"""

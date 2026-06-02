@@ -45,7 +45,7 @@ internal partial class SiteBuilder
 			article.EditTime = DateTimeOffset.ParseExact(time, "yyyy-MM-ddTHH:mm:ssK", CultureInfo.InvariantCulture).UtcDateTime;
 
 		// Output HTML
-		await WriteHeader(output, title.Span, ArticleTitleSuffix);
+		await WriteHeader(output, title.Span, ArticleTitleSuffix, urlPath);
 		await output.WriteAsync(
 $"""
 <header><h1><a href="/">{H1Title}</a></h1></header>
