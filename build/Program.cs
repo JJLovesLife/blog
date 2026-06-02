@@ -59,16 +59,15 @@ class Program
 			if (Path.GetExtension(srcFile) != ".md")
 				throw new ArgumentOutOfRangeException($"[{relativePath}]: only support markdown file");
 
-			// skip file without change
+			// Skip rewriting unchanged article pages, but still collect metadata for index pages and sitemap.
 			var destFileInfo = new FileInfo(destFile);
-			if (!force && destFileInfo.Exists && destFileInfo.LastWriteTimeUtc >= File.GetLastWriteTimeUtc(srcFile))
-				return;
+			var shouldBuildArticlePage = force || !destFileInfo.Exists || destFileInfo.LastWriteTimeUtc < File.GetLastWriteTimeUtc(srcFile);
 
 			// TODO: as we parallel, need an identifier to distinct iter when we have more log
 			Log.DiagWriteLine($"Building file: {relativePath}");
 
 			var destUrlPath = "/" + Path.ChangeExtension(relativePath, null).Replace(Path.DirectorySeparatorChar, '/').Replace(Path.AltDirectorySeparatorChar, '/');
-			await siteBuilder.BuildArticle(destUrlPath, destFile, srcFile);
+			await siteBuilder.BuildArticle(destUrlPath, destFile, srcFile, shouldBuildArticlePage);
 		});
 
 		await siteBuilder.PostArticlesBuild();

@@ -13,10 +13,9 @@ internal partial class SiteBuilder
 		.UseSoftlineBreakAsHardlineBreak()
 		.UseAutoLinks()
 		.Build();
-	public async Task BuildArticle(string urlPath, string destFilePath, string srcFilePath)
+	public async Task BuildArticle(string urlPath, string destFilePath, string srcFilePath, bool shouldBuildArticlePage)
 	{
 		var content = await File.ReadAllTextAsync(srcFilePath);
-		using var output = new StreamWriter(destFilePath);
 
 		var document = Markdown.Parse(content, pipeline);
 
@@ -45,8 +44,11 @@ internal partial class SiteBuilder
 			article.EditTime = DateTimeOffset.ParseExact(time, "yyyy-MM-ddTHH:mm:ssK", CultureInfo.InvariantCulture).UtcDateTime;
 
 		// Output HTML
-		await WriteHeader(output, title.Span, ArticleTitleSuffix, urlPath);
-		await output.WriteAsync(
+		if (shouldBuildArticlePage)
+		{
+			using var output = new StreamWriter(destFilePath);
+			await WriteHeader(output, title.Span, ArticleTitleSuffix, urlPath);
+			await output.WriteAsync(
 $"""
 <header><h1><a href="/">{H1Title}</a></h1></header>
 <main>
@@ -57,32 +59,32 @@ $"""
 				<time datetime="{article.PostTime:yyyy-MM-ddTHH:mm:ssK}">{article.PostTime:yyyy/MM/dd}</time>
 
 """);
-		if (article.EditTime != article.PostTime)
-			// fix to live branch now, no support for PR review now.
-			await output.WriteAsync(
+			if (article.EditTime != article.PostTime)
+				// fix to live branch now, no support for PR review now.
+				await output.WriteAsync(
 $"""
 				<span><a href="{repoUrl}/commits/{branch}/{article.SrcPath}">• edited</a></span>
 
 """);
-		await output.WriteAsync(
+			await output.WriteAsync(
 """
 			</div>
 		</header>
 		<div class="content">
 
 """);
-		Markdown.ToHtml(document, output, pipeline);
-		await output.WriteAsync(
+			Markdown.ToHtml(document, output, pipeline);
+			await output.WriteAsync(
 """
 		</div>
 	</article>
 
 """);
 
-		// TODO: If we want to show the latest commit of the article instead of whole blog? But that also effect the css etc
-		// TODO: could optimize the interpolation
-		var (headAbbr, headFull) = await HeadHash;
-		await output.WriteAsync(
+			// TODO: If we want to show the latest commit of the article instead of whole blog? But that also effect the css etc
+			// TODO: could optimize the interpolation
+			var (headAbbr, headFull) = await HeadHash;
+			await output.WriteAsync(
 $"""
 	<hr>
 </main>
@@ -94,7 +96,8 @@ $"""
 </footer>
 
 """);
-		await WriteFooter(output);
+			await WriteFooter(output);
+		}
 
 		var trimmed = document.TrimReadMore();
 		article.ReadLessText = Markdown.ToHtml(document, pipeline);

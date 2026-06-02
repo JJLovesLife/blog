@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Xml;
 
 internal partial class SiteBuilder
 {
@@ -29,6 +30,7 @@ internal partial class SiteBuilder
 		var tasks = new List<Task>()
 		{
 			BuildIndexPages(),
+			BuildSitemap(),
 			CopyAssets(),
 			BuildRedirects(),
 		};
@@ -74,6 +76,55 @@ internal partial class SiteBuilder
 """);
 	}
 
+	private async Task BuildSitemap()
+	{
+		if (string.IsNullOrWhiteSpace(siteDomain))
+			return;
+
+		var orderedArticles = articles.OrderByDescending(article => article.PostTime).ThenBy(article => article.UrlPath).ToArray();
+		var pages = (orderedArticles.Length + ArticlePerPage - 1) / ArticlePerPage;
+		if (pages == 0) pages = 1;
+
+		using var output = XmlWriter.Create(
+			Path.Join(OutputFolder, "sitemap.xml"),
+			new XmlWriterSettings()
+			{
+				Async = true,
+				Indent = true
+			});
+
+		await WriteSitemap(output, orderedArticles, pages);
+	}
+
+	private async Task WriteSitemap(XmlWriter output, Article[] orderedArticles, int pages)
+	{
+		await output.WriteStartDocumentAsync();
+		await output.WriteStartElementAsync(null, "urlset", "http://www.sitemaps.org/schemas/sitemap/0.9");
+
+		for (var pageNo = 1; pageNo <= pages; pageNo++)
+		{
+			var urlPath = pageNo == 1 ? "/" : $"/page/{pageNo}";
+			await WriteSitemapUrl(output, urlPath);
+		}
+
+		foreach (var article in orderedArticles)
+		{
+			await WriteSitemapUrl(output, article.UrlPath, article.EditTime);
+		}
+
+		await output.WriteEndElementAsync();
+		await output.WriteEndDocumentAsync();
+	}
+
+	private async Task WriteSitemapUrl(XmlWriter output, string urlPath, DateTime? lastModified = null)
+	{
+		await output.WriteStartElementAsync(null, "url", null);
+		await output.WriteElementStringAsync(null, "loc", null, GetAbsoluteUrl(urlPath));
+		if (lastModified is not null)
+			await output.WriteElementStringAsync(null, "lastmod", null, lastModified.Value.ToString("yyyy-MM-dd"));
+		await output.WriteEndElementAsync();
+	}
+
 	private Task WriteHeader(TextWriter output, ReadOnlySpan<char> title, string suffix, string urlPath)
 	{
 		var canonicalUrl = GetCanonicalUrl(urlPath);
@@ -96,12 +147,17 @@ internal partial class SiteBuilder
 		if (string.IsNullOrWhiteSpace(siteDomain))
 			return string.Empty;
 
-		var builder = new UriBuilder("https", siteDomain)
+		return $"<link rel=\"canonical\" href=\"{GetAbsoluteUrl(urlPath)}\">";
+	}
+
+	private string GetAbsoluteUrl(string urlPath)
+	{
+		var builder = new UriBuilder("https", siteDomain!)
 		{
 			Path = urlPath
 		};
 
-		return $"<link rel=\"canonical\" href=\"{builder.Uri.AbsoluteUri}\">";
+		return builder.Uri.AbsoluteUri;
 	}
 
 	private static Task WriteFooter(TextWriter output)
