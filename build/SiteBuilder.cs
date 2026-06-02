@@ -140,16 +140,16 @@ Sitemap: {GetAbsoluteUrl("/sitemap.xml")}
 		await output.WriteEndElementAsync();
 	}
 
-	private Task WriteHeader(TextWriter output, ReadOnlySpan<char> title, string suffix, string urlPath)
+	private Task WriteHeader(TextWriter output, ReadOnlySpan<char> title, string suffix, string urlPath, string? previousUrlPath = null, string? nextUrlPath = null)
 	{
-		var canonicalUrl = GetCanonicalUrl(urlPath);
+		var headLinks = GetHeaderLinks(urlPath, previousUrlPath, nextUrlPath);
 		return output.WriteAsync($"""
 		<!DOCTYPE html>
 		<html lang="zh-CN">
 		<head>
 			<meta charset="utf-8">
 			<title>{title} | {suffix}</title>
-			{canonicalUrl}
+			{headLinks}
 			<link rel="stylesheet" href="/assets/style.css">
 		</head>
 		<body>
@@ -157,12 +157,37 @@ Sitemap: {GetAbsoluteUrl("/sitemap.xml")}
 		""");
 	}
 
-	private string GetCanonicalUrl(string urlPath)
+	private string GetHeaderLinks(string urlPath, string? previousUrlPath, string? nextUrlPath)
+	{
+		var links = new List<string>();
+		var canonicalUrl = GetCanonicalUrl(urlPath);
+		if (canonicalUrl is not null)
+			links.Add(canonicalUrl);
+		var previousPageUrl = GetPaginationLink("prev", previousUrlPath);
+		if (previousPageUrl is not null)
+			links.Add(previousPageUrl);
+		var nextPageUrl = GetPaginationLink("next", nextUrlPath);
+		if (nextPageUrl is not null)
+			links.Add(nextPageUrl);
+
+		return string.Join("\n\t", links);
+	}
+
+	private string? GetCanonicalUrl(string urlPath)
 	{
 		if (string.IsNullOrWhiteSpace(siteDomain))
-			return string.Empty;
+			return null;
 
 		return $"<link rel=\"canonical\" href=\"{GetAbsoluteUrl(urlPath)}\">";
+	}
+
+	private string? GetPaginationLink(string rel, string? urlPath)
+	{
+		if (urlPath is null)
+			return null;
+
+		var href = string.IsNullOrWhiteSpace(siteDomain) ? urlPath : GetAbsoluteUrl(urlPath);
+		return $"<link rel=\"{rel}\" href=\"{href}\">";
 	}
 
 	private string GetAbsoluteUrl(string urlPath)

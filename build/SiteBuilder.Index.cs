@@ -37,7 +37,14 @@ internal partial class SiteBuilder
 	{
 		var title = pageNo == 1 ? MainTitle : $"{MainTitle} - Page {pageNo}";
 		var urlPath = pageNo == 1 ? "/" : $"/page/{pageNo}";
-		await WriteHeader(output, title, IndexQuote, urlPath);
+		var previousUrlPath = pageNo switch
+		{
+			1 => null,
+			2 => "/",
+			_ => $"/page/{pageNo - 1}"
+		};
+		var nextUrlPath = isLast ? null : $"/page/{pageNo + 1}";
+		await WriteHeader(output, title, IndexQuote, urlPath, previousUrlPath, nextUrlPath);
 
 		await output.WriteAsync(
 $"""
