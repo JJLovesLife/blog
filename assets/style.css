@@ -16,6 +16,13 @@ body > header {
 	padding-left: .5em;
 }
 
+.site-title {
+	display: block;
+	font-size: 2em;
+	font-weight: bold;
+	margin: .67em 0;
+}
+
 a {
 	text-decoration: none;
 }
@@ -37,6 +44,7 @@ article > header {
 }
 
 .title {
+	font-size: 24px;
 	margin: .67em 0;
 }
 .title a,

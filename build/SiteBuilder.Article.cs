@@ -50,11 +50,11 @@ internal partial class SiteBuilder
 			await WriteHeader(output, title.Span, ArticleTitleSuffix, urlPath);
 			await output.WriteAsync(
 $"""
-<header><h1><a href="/">{H1Title}</a></h1></header>
+<header><a class="site-title" href="/">{H1Title}</a></header>
 <main>
 	<article>
 		<header>
-			<h2 class="title"><a href="{article.UrlPath}" rel="bookmark">{article.Title}</a></h2>
+			<h1 class="title"><a href="{article.UrlPath}" rel="bookmark">{article.Title}</a></h1>
 			<div class="time">
 				<time datetime="{article.PostTime:yyyy-MM-ddTHH:mm:ssK}">{article.PostTime:yyyy/MM/dd}</time>
 
