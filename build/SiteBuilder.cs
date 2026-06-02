@@ -145,7 +145,7 @@ Sitemap: {GetAbsoluteUrl("/sitemap.xml")}
 		var canonicalUrl = GetCanonicalUrl(urlPath);
 		return output.WriteAsync($"""
 		<!DOCTYPE html>
-		<html lang="en">
+		<html lang="zh-CN">
 		<head>
 			<meta charset="utf-8">
 			<title>{title} | {suffix}</title>
