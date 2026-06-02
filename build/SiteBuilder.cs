@@ -31,6 +31,7 @@ internal partial class SiteBuilder
 		{
 			BuildIndexPages(),
 			BuildSitemap(),
+			BuildRobotsTxt(),
 			CopyAssets(),
 			BuildRedirects(),
 		};
@@ -94,6 +95,20 @@ internal partial class SiteBuilder
 			});
 
 		await WriteSitemap(output, orderedArticles, pages);
+	}
+
+	private Task BuildRobotsTxt()
+	{
+		if (string.IsNullOrWhiteSpace(siteDomain))
+			return Task.CompletedTask;
+
+		return File.WriteAllTextAsync(
+			Path.Join(OutputFolder, "robots.txt"),
+$"""
+User-agent: *
+Allow: /
+Sitemap: {GetAbsoluteUrl("/sitemap.xml")}
+""");
 	}
 
 	private async Task WriteSitemap(XmlWriter output, Article[] orderedArticles, int pages)
