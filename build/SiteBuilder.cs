@@ -11,13 +11,15 @@ internal partial class SiteBuilder
 	public const string ArticleTitleSuffix = H1Title;
 
 	private readonly Uri repoUrl;
+	private readonly string? siteDomain;
 	private readonly string branch;
 	private readonly bool force;
 	private readonly ConcurrentBag<Article> articles = new();
 
-	public SiteBuilder(Uri repo, string branch, bool force)
+	public SiteBuilder(Uri repo, string branch, bool force, string? siteDomain)
 	{
 		this.repoUrl = repo;
+		this.siteDomain = siteDomain;
 		this.branch = branch;
 		this.force = force;
 	}

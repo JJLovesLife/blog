@@ -6,18 +6,20 @@ class Program
 	/// <summary>
 	/// My blog's build system.
 	/// </summary>
-	/// <param name="repo_url">url to the repository contains the blog</param>
+	/// <param name="repoUrl">url to the repository contains the blog</param>
+	/// <param name="siteDomain">domain name for the generated site, without scheme, port, path, or trailing slash</param>
 	/// <param name="branch">current branch of the repo</param>
 	/// <param name="force">force generation</param>
 	/// <param name="verbosity"></param>
 	static async Task Main(
-		Uri? repo_url = null,
+		Uri? repoUrl = null,
+		string? siteDomain = null,
 		string branch = "live",
 		bool force = false,
 		Verbosity verbosity = Verbosity.Normal)
 	{
 		// default repo URL, for easier local build
-		repo_url ??= new Uri("https://github.com/JJLovesLife/blog");
+		repoUrl ??= new Uri("https://github.com/JJLovesLife/blog");
 
 		Log.level = verbosity;
 
@@ -29,7 +31,7 @@ class Program
 		Directory.CreateDirectory(SiteBuilder.OutputFolder);
 
 		Log.WriteLine($"Building article folder: {Path.GetFullPath(SiteBuilder.ArticlesFolder)}");
-		var siteBuilder = new SiteBuilder(repo_url, branch, force);
+		var siteBuilder = new SiteBuilder(repoUrl, branch, force, siteDomain);
 
 		await Parallel.ForEachAsync(
 			new FileSystemEnumerable<(string, bool)>(
