@@ -1,5 +1,6 @@
 using System.Globalization;
 using Markdig;
+using Markdig.Extensions.Mathematics;
 using Markdig.Extensions.Yaml;
 using Markdig.Renderers.Html;
 using Markdig.Syntax;
@@ -13,6 +14,9 @@ internal partial class SiteBuilder
 		.UseYamlFrontMatter()
 		.Use<ReadMoreExtension>()
 		.Use<CodeLanguageExtension>()
+		.UseMathematics()
+		.Use<MathematicsExtension>()
+		.UsePreciseSourceLocation()
 		.UseSoftlineBreakAsHardlineBreak()
 		.UseAutoLinks()
 		.Build();
@@ -26,6 +30,7 @@ internal partial class SiteBuilder
 		var title = GetTitle(document);
 		if (title.IsEmpty)
 			throw new ArgumentException($"[{urlPath}]: do not have title");
+		var mathStyleSheet = await MathematicsExtension.RenderAsync(document, srcFilePath);
 
 		var article = new Article() {
 			SrcPath = srcFilePath.Replace('\\', '/'),
@@ -51,7 +56,7 @@ internal partial class SiteBuilder
 		if (shouldBuildArticlePage)
 		{
 			using var output = new StreamWriter(destFilePath);
-			await WriteHeader(output, title.Span, ArticleTitleSuffix, urlPath);
+			await WriteHeader(output, title.Span, ArticleTitleSuffix, urlPath, mathStyleSheet: mathStyleSheet);
 			await output.WriteAsync(
 $"""
 <header><a class="site-title" href="/">{H1Title}</a></header>
@@ -104,6 +109,8 @@ $"""
 		}
 
 		var trimmed = document.TrimReadMore();
+		if (document.Descendants().Any(node => node is MathInline or MathBlock))
+			article.MathStyleSheet = mathStyleSheet;
 		article.ReadLessText = Markdown.ToHtml(document, pipeline);
 		if (trimmed)
 			article.ReadLessText += $"""<p><a href="{urlPath}#read-more">Read more...</a></p>""";

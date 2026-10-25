@@ -6,6 +6,7 @@
 - The static site generator is the C# project in `build/`, targeting `net10.0`; `build/bin/` and `build/obj/` are build artifacts.
 
 ## Commands
+- Math rendering also requires Node.js on `PATH` and `npm install` before building.
 - Regenerate the site locally with `dotnet run --project build -- --force`.
 - `npm run build:worker` runs `scripts/build-worker.sh`: it requires bash, unshallows CI clones, ensures a .NET 10 SDK under `$DOTNET_ROOT`, then runs the generator with the repo URL and current HEAD.
 - `npm run dev` / `npm start` run `wrangler dev`; rebuild `output/` first after article, generator, or CSS changes.
@@ -13,6 +14,7 @@
 - There are no configured lint, test, or typecheck scripts in `package.json`; use the generator command above as the focused verification step.
 
 ## Article Rules
+- Use `$...$` for inline math and standalone `$$` lines for display math. KaTeX renders formulas during the build; its unmodified CSS and fonts load from cdnjs at the same pinned version as the npm dependency.
 - Every article must be Markdown with YAML front matter containing `title: ...`; the generator throws if the title is missing.
 - Non-Markdown files under `articles/` are rejected. Do not create `articles/assets/` or `articles/page/`; those names are reserved by the generator.
 - `--- MORE ---` is a custom Markdig block. At most one may appear in an article; it becomes `#read-more` and trims index-page excerpts at that point.
