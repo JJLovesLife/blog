@@ -44,7 +44,16 @@ internal partial class SiteBuilder
 			_ => $"/page/{pageNo - 1}"
 		};
 		var nextUrlPath = isLast ? null : $"/page/{pageNo + 1}";
-		await WriteHeader(output, title, IndexQuote, urlPath, previousUrlPath, nextUrlPath);
+		string? mathStyleSheet = null;
+		foreach (var article in articles.Span)
+		{
+			if (article.MathStyleSheet is null)
+				continue;
+			if (mathStyleSheet is not null && mathStyleSheet != article.MathStyleSheet)
+				throw new InvalidOperationException($"[{urlPath}]: Conflicting math stylesheets: {mathStyleSheet} and {article.MathStyleSheet}.");
+			mathStyleSheet = article.MathStyleSheet;
+		}
+		await WriteHeader(output, title, IndexQuote, urlPath, previousUrlPath, nextUrlPath, mathStyleSheet);
 
 		await output.WriteAsync(
 $"""

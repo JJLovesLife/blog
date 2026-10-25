@@ -140,9 +140,9 @@ Sitemap: {GetAbsoluteUrl("/sitemap.xml")}
 		await output.WriteEndElementAsync();
 	}
 
-	private Task WriteHeader(TextWriter output, ReadOnlySpan<char> title, string suffix, string urlPath, string? previousUrlPath = null, string? nextUrlPath = null)
+	private Task WriteHeader(TextWriter output, ReadOnlySpan<char> title, string suffix, string urlPath, string? previousUrlPath = null, string? nextUrlPath = null, string? mathStyleSheet = null)
 	{
-		var headLinks = GetHeaderLinks(urlPath, previousUrlPath, nextUrlPath);
+		var headLinks = GetHeaderLinks(urlPath, previousUrlPath, nextUrlPath, mathStyleSheet);
 		return output.WriteAsync($"""
 		<!DOCTYPE html>
 		<html lang="zh-CN">
@@ -158,7 +158,7 @@ Sitemap: {GetAbsoluteUrl("/sitemap.xml")}
 		""");
 	}
 
-	private string GetHeaderLinks(string urlPath, string? previousUrlPath, string? nextUrlPath)
+	private string GetHeaderLinks(string urlPath, string? previousUrlPath, string? nextUrlPath, string? mathStyleSheet)
 	{
 		var links = new List<string>();
 		var canonicalUrl = GetCanonicalUrl(urlPath);
@@ -170,6 +170,8 @@ Sitemap: {GetAbsoluteUrl("/sitemap.xml")}
 		var nextPageUrl = GetPaginationLink("next", nextUrlPath);
 		if (nextPageUrl is not null)
 			links.Add(nextPageUrl);
+		if (mathStyleSheet is not null)
+			links.Add($"<link rel=\"stylesheet\" href=\"{mathStyleSheet}\">");
 
 		return string.Join("\n\t", links);
 	}
@@ -232,5 +234,6 @@ document.querySelectorAll('time').forEach(t => {
 		public DateTime PostTime;
 		public DateTime EditTime;
 		public string ReadLessText;
+		public string? MathStyleSheet;
 	}
 }
