@@ -171,7 +171,12 @@ Sitemap: {GetAbsoluteUrl("/sitemap.xml")}
 		if (nextPageUrl is not null)
 			links.Add(nextPageUrl);
 		if (mathStyleSheet is not null)
+		{
 			links.Add($"<link rel=\"stylesheet\" href=\"{mathStyleSheet}\">");
+			// Keep the copy extension on the same CDN and version as the math stylesheet.
+			var copyTexScript = new Uri(new Uri(mathStyleSheet), "contrib/copy-tex.min.js");
+			links.Add($"<script defer src=\"{copyTexScript}\"></script>");
+		}
 
 		return string.Join("\n\t", links);
 	}
